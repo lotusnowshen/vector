@@ -56,10 +56,7 @@ private:
         reverse_iterator(iterator it = NULL) :current_(it) { }
         iterator base() const { return current_; }
         reverse_iterator &operator++()
-        {
-            --current_;
-            return *this;
-        }
+        {   --current_; return *this; }
         reverse_iterator operator++(int)
         {
             reverse_iterator temp(*this);
@@ -67,10 +64,7 @@ private:
             return temp;
         }
         reverse_iterator &operator--()
-        {
-            ++current_;
-            return *this;
-        }
+        {   ++current_; return *this; }
         reverse_iterator operator--(int)
         {
             reverse_iterator temp(*this);
@@ -78,36 +72,22 @@ private:
             return temp;
         }
         reference operator*()
-        {
-            return *(current_ - 1);
-        }
+        {   return *(current_ - 1); }
         const_reference operator*() const
-        {
-            return *(current_ - 1);
-        }
+        {   return *(current_ - 1); }
 
         pointer operator->()
-        {
-            return current_ - 1;
-        }
+        {   return current_ - 1;}
         const_pointer operator->() const
-        {
-            return current_ - 1;
-        }
+        {   return current_ - 1;}
 
         friend bool operator==(reverse_iterator i,  reverse_iterator j)
-        {
-            return i.current_ == j.current_;
-        }
+        {   return i.current_ == j.current_;   }
         friend bool operator!=(reverse_iterator i,  reverse_iterator j)
-        {
-            return i.current_ != j.current_;
-        }
+        {   return i.current_ != j.current_;    }
 
         friend difference_type operator-(reverse_iterator i,  reverse_iterator j)
-        {
-            return i.current_ - j.current_;
-        }
+        {   return i.current_ - j.current_; }
 
     private:
         iterator current_; //物理位置
@@ -121,10 +101,7 @@ private:
         const_reverse_iterator(reverse_iterator it) :current_(it.base()) { }
         const_iterator base() const { return current_; }
         const_reverse_iterator &operator++()
-        {
-            --current_;
-            return *this;
-        }
+        {   --current_; return *this; }
         const_reverse_iterator operator++(int)
         {
             const_reverse_iterator temp(*this);
@@ -132,10 +109,7 @@ private:
             return temp;
         }
         const_reverse_iterator &operator--()
-        {
-            ++current_;
-            return *this;
-        }
+        {   ++current_; return *this;   }
         const_reverse_iterator operator--(int)
         {
             const_reverse_iterator temp(*this);
@@ -143,27 +117,17 @@ private:
             return temp;
         }
         const_reference operator*() const
-        {
-            return *(current_ - 1);
-        }
+        {   return *(current_ - 1); }
         const_pointer operator->() const
-        {
-            return current_ - 1;
-        }
+        {   return current_ - 1;    }
 
         friend bool operator==(const_reverse_iterator i,  const_reverse_iterator j)
-        {
-            return i.current_ == j.current_;
-        }
+        {   return i.current_ == j.current_;    }
         friend bool operator!=(const_reverse_iterator i,  const_reverse_iterator j)
-        {
-            return i.current_ != j.current_;
-        }
+        {   return i.current_ != j.current_;    }
 
         friend difference_type operator-(const_reverse_iterator i,  const_reverse_iterator j)
-        {
-            return i.current_ - j.current_;
-        }
+        {   return i.current_ - j.current_;     }
 
     private:
         const_iterator current_; //物理位置
@@ -172,7 +136,7 @@ private:
 public:
 
     Vector() { create(); }
-    explicit Vector(size_type n, const value_type &val = T()) 
+    explicit Vector(size_type n, const value_type &val = value_type()) 
     { create(n, val); }
 
     template <typename In>
@@ -214,9 +178,7 @@ public:
         unCheckedAppend(t);
     }
     void pop_back()
-    {
-        alloc_.destroy(--avail_);
-    }
+    {   alloc_.destroy(--avail_);   }
 
     void swap(Vector &other)
     {

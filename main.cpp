@@ -133,6 +133,7 @@ int main(int argc, char const *argv[])
 
     { //测试resize
         Vector<int> vec(static_cast<Vector<int>::size_type>(17), 15);
+        //Vector<int> vec(10, 10); 编译错误
         print(vec);
         printInfo(vec);
         vec.resize(20, 13);
