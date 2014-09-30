@@ -153,6 +153,25 @@ int main(int argc, char const *argv[])
         printInfo(vec);
     }
 
+    {
+        Vector<string> vec(3, "foo");
+        print(vec);
+        printInfo(vec);
+
+        vec.insert(vec.end(), 3, "beijing");
+        print(vec);
+        printInfo(vec);
+
+        vec.insert(vec.begin(), 4, "bar");
+        print(vec);
+        printInfo(vec);
+
+        string sarr[3] = {"hello", "world", "welcome"};
+        vec.insert(vec.begin()+2, sarr, sarr + 3);
+        print(vec);
+        printInfo(vec);
+    }
+
     return 0;
 }
 

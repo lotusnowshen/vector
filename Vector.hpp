@@ -275,7 +275,8 @@ private:
     void grow();
     void unCheckedAppend(const value_type &);
 
-    int compare(const Vector &other);
+    //
+    void growToN(size_type n);
 };
 
 template <typename T, typename Alloc>
@@ -323,7 +324,6 @@ template <typename T, typename Alloc>
 void Vector<T, Alloc>::uncreate()
 {
     //先执行析构函数
-
     if(data_)
     {
         iterator it(avail_); //初始
@@ -344,17 +344,7 @@ void Vector<T, Alloc>::grow()
     size_type current_size = limit_ - data_; //当前大小
     size_type new_size = (current_size*2 > 1) ?  current_size*2 : 1;
 
-    //申请内存并构造
-    iterator new_data = alloc_.allocate(new_size);
-    iterator new_avail =  uninitialized_copy(data_, avail_, new_data);
-
-    //释放原来的元素
-    uncreate();
-
-    //重置指针
-    data_ = new_data;
-    avail_ = new_avail;
-    limit_ = data_ + new_size;
+    growToN(new_size);
 }
 
 template <typename T, typename Alloc>
@@ -363,26 +353,74 @@ void Vector<T, Alloc>::unCheckedAppend(const value_type &val)
     alloc_.construct(avail_++, val); //插入新的元素
 }
 
-/*
 template <typename T, typename Alloc>
-iterator Vector<T, Alloc>::insert(iterator position, const value_type& val)
+void Vector<T, Alloc>::growToN(size_type n)
 {
-    //调用下面的版本
+    //申请内存并构造
+    iterator new_data = alloc_.allocate(n);
+    iterator new_avail = std::uninitialized_copy(data_, avail_, new_data);
+    //析构并释放之前的内存
+    uncreate();
+
+    //重置指针
+    data_ = new_data;
+    avail_ = new_avail;
+    limit_ = data_ + n;
+}
+
+
+template <typename T, typename Alloc>
+typename Vector<T, Alloc>::iterator Vector<T, Alloc>::insert(iterator position, const value_type& val)
+{
+    difference_type pos = position - data_; //防止失效
+    insert(position, 1, val);
+    return position + pos;
 }
 
 template <typename T, typename Alloc>
 void Vector<T, Alloc>::insert(iterator position, size_type n, const value_type& val)
 {
+    size_type left = limit_ - avail_;
+    difference_type pos = position - data_; //防止position失效
+    if(left < n)
+        grow(); //加倍
+    position = data_ + pos;
 
+    //元素后移n位
+    int len = avail_ - position; //需要移动的数量
+    int len_copy = len - n; //需要复制的数量
+    std::uninitialized_copy(position + len_copy, avail_, avail_);
+    std::copy_backward(position, position + len_copy, avail_);
+
+    avail_ = avail_ + n;
+    
+    //fill
+    std::fill_n(position, n, val);
 }
 
 template <typename T, typename Alloc>
 template <typename InputIterator>
-void Vector<T, Alloc>::insert (iterator position, InputIterator first, InputIterator last)
+void Vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last)
 {
+    size_type left = limit_ - avail_;
+    difference_type pos = position - data_; //防止position失效
+    size_type n = last - first;
+    if(left < n)
+        grow(); //加倍
+    position = data_ + pos;
 
+    //元素后移n位
+    int len = avail_ - position; //需要移动的数量
+    int len_copy = len - n; //需要复制的数量
+    //需要初始化的数量为n
+    std::uninitialized_copy(position + len_copy, avail_, avail_);
+    std::copy_backward(position, position + len_copy, avail_);
+
+    avail_ = avail_ + n;
+
+    //copy
+    std::copy(first, last, position);
 }
-*/
 
 template <typename T, typename Alloc>
 typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase (iterator position)
@@ -410,7 +448,6 @@ typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase(iterator first, iter
     }
 
     //不必重置指针
-
     return first;
 }
 
@@ -423,8 +460,7 @@ void Vector<T, Alloc>::resize (size_type n, value_type val)
         size_type diff = current_size - n;
         while(diff--)
         {
-            alloc_.destroy(--avail_);
-            //pop_back()
+            alloc_.destroy(--avail_); //pop_back()
         }
     }
     else if(n > current_size) //扩充元素
@@ -434,15 +470,10 @@ void Vector<T, Alloc>::resize (size_type n, value_type val)
         size_type left = static_cast<size_type>(limit_ - avail_); //剩余
         if(left < diff) //需要重新分配内存
         {
-            iterator new_data = alloc_.allocate(n);
-            iterator new_avail = std::uninitialized_copy(data_, avail_, new_data);
-            uncreate();
-
-            data_ = new_data;
-            avail_ = new_avail;
-            limit_ = data_ + n;
+            growToN(n);
         }
 
+        //填充后面的元素
         while(size() < n)
             unCheckedAppend(val);
     }
