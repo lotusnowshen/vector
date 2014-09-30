@@ -5,14 +5,33 @@
 #include <algorithm>
 #include <stddef.h>
 
+//这里声明Vector是一个模板
+template <typename T, typename Alloc>
+class Vector;
+
+//运算符的函数声明
+template <typename T, typename Alloc>
+bool operator==(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+template <typename T, typename Alloc>
+bool operator!=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+template <typename T, typename Alloc>
+bool operator<(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+template <typename T, typename Alloc>
+bool operator<=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+template <typename T, typename Alloc>
+bool operator>(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+template <typename T, typename Alloc>
+bool operator>=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+
 template <typename T, typename Alloc = std::allocator<T> >
 class Vector
 {
-    friend bool operator==(const Vector &lhs, const Vector &rhs)
-    {
-        return lhs.size() == rhs.size() && 
-            std::equal(lhs.begin(), lhs.end(), rhs.begin());
-    }
+    friend bool operator==<T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+    friend bool operator!=<T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+    friend bool operator< <T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+    friend bool operator<=<T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+    friend bool operator> <T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
+    friend bool operator>=<T, Alloc> (const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs);
 
     class reverse_iterator;
     class const_reverse_iterator;
@@ -153,7 +172,7 @@ private:
 public:
 
     Vector() { create(); }
-    Vector(size_type n, const value_type &val = T()) 
+    explicit Vector(size_type n, const value_type &val = T()) 
     { create(n, val); }
 
     template <typename In>
@@ -252,6 +271,8 @@ private:
     //用于push_back函数
     void grow();
     void unCheckedAppend(const value_type &);
+
+    int compare(const Vector &other);
 };
 
 template <typename T, typename Alloc>
@@ -389,6 +410,58 @@ typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase(iterator first, iter
 
     return first;
 }
+
+template <typename T, typename Alloc>
+bool operator==(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    return lhs.size() == rhs.size() && 
+        std::equal(lhs.begin(), lhs.end(), rhs.begin());
+}
+
+template <typename T, typename Alloc>
+bool operator!=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    return !(lhs == rhs);
+}
+
+template <typename T, typename Alloc>
+bool operator<(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    typedef typename Vector<T, Alloc>::size_type size_type;
+    size_type size1 = lhs.size();
+    size_type size2 = rhs.size();
+    size_type min_size = (size1 < size2) ? size1 : size2;
+    size_type ix = 0;
+    for(; ix != min_size; ++ix)
+    {
+        if(lhs[ix] < rhs[ix])
+            return true;
+        else if(lhs[ix] > rhs[ix])
+            return false;
+    }
+    if(ix != size2) //rhs较长
+        return true;
+    return false;
+}
+
+template <typename T, typename Alloc>
+bool operator<=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    return !(rhs < lhs);        //lhs <= rhs
+}
+
+template <typename T, typename Alloc>
+bool operator>(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    return rhs < lhs; //lhs > rhs
+}
+
+template <typename T, typename Alloc>
+bool operator>=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
+{
+    return !(lhs < rhs);
+}
+
 
 
 

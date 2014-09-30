@@ -26,6 +26,7 @@ void printInfo(const T &val)
 
 int main(int argc, char const *argv[])
 {
+    //测试基本的构造函数
     Vector<string> vec(5, "foo");
 
     print(vec);
@@ -101,5 +102,29 @@ int main(int argc, char const *argv[])
         printInfo(vec);
     }
 
+    //测试运算符
+    int arr1[] = {3, 1, 5, 7, 3, 4};
+    int arr2[] = {3, 1, 6, 7, 3, 4};
+    int arr3[] = {3, 1, 5, 7, 3, 4, 3};
+    Vector<int> v1(arr1, arr1 + 6);
+    Vector<int> v2(arr2, arr2 + 6);
+    Vector<int> v3(arr3, arr3 + 7);
+    Vector<int> v4(arr1, arr1 + 6);
+    assert(v1 < v2);
+    assert(v1 <= v2);
+    assert(v2 > v1);
+    assert(v2 >= v1);
+    assert(v1 != v2);
+
+    assert(v1 < v3);
+    assert(v3 > v1);
+    assert(v1 <= v3);
+    assert(v3 >= v1);
+    assert(v1 != v3);
+
+    assert(v1 == v4);
+    cout << "测试运算符无错误" << endl;
+
     return 0;
 }
+
