@@ -233,7 +233,10 @@ public:
     iterator erase (iterator position);
     iterator erase (iterator first, iterator last);
 
+    void resize (size_type n, value_type val = value_type());
+    void reserve (size_type n);
 
+    bool empty() const { return data_ == avail_; }
     size_type size() const { return avail_ - data_; }
     size_type capacity() const { return limit_ - data_; }
 
@@ -302,7 +305,7 @@ void Vector<T, Alloc>::create(size_type n, const value_type &val)
     std::uninitialized_fill(data_, data_ + n, val);
     avail_ = limit_ = data_ + n;
 
-    //为什么不适用new？
+    //为什么不使用new？
 }
 
 
@@ -409,6 +412,57 @@ typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase(iterator first, iter
     //不必重置指针
 
     return first;
+}
+
+template <typename T, typename Alloc>
+void Vector<T, Alloc>::resize (size_type n, value_type val)
+{
+    size_type current_size = size();
+    if(n < current_size) //缩小数量
+    {
+        size_type diff = current_size - n;
+        while(diff--)
+        {
+            alloc_.destroy(--avail_);
+            //pop_back()
+        }
+    }
+    else if(n > current_size) //扩充元素
+    {
+        //调用insert来完成内存调整
+        size_type diff = n - current_size;
+        size_type left = static_cast<size_type>(limit_ - avail_); //剩余
+        if(left < diff) //需要重新分配内存
+        {
+            iterator new_data = alloc_.allocate(n);
+            iterator new_avail = std::uninitialized_copy(data_, avail_, new_data);
+            uncreate();
+
+            data_ = new_data;
+            avail_ = new_avail;
+            limit_ = data_ + n;
+        }
+
+        while(size() < n)
+            unCheckedAppend(val);
+    }
+}
+
+template <typename T, typename Alloc>
+void Vector<T, Alloc>::reserve (size_type n)
+{
+    size_type current_capacity = capacity();
+    if(n > current_capacity)
+    {
+        iterator new_data = alloc_.allocate(n);
+        iterator new_avail = std::uninitialized_copy(data_, avail_, new_data);
+
+        uncreate(); //释放old
+
+        data_ = new_data;
+        avail_ = new_avail;
+        limit_ = data_ + n;
+    }
 }
 
 template <typename T, typename Alloc>
