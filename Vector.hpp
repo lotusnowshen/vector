@@ -176,7 +176,7 @@ public:
     { create(n, val); }
 
     template <typename In>
-    Vector(In i, In j) //一段迭代器去初始化容器
+    Vector(In i, In j) //迭代器区间去初始化容器
     { create(i, j); }
 
     Vector(const Vector &v)
@@ -546,8 +546,5 @@ bool operator>=(const Vector<T, Alloc> &lhs, const Vector<T, Alloc> &rhs)
 {
     return !(lhs < rhs);
 }
-
-
-
 
 #endif  /* VECTOR_HPP */
