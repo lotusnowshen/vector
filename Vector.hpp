@@ -153,14 +153,12 @@ private:
 public:
 
     Vector() { create(); }
-    Vector(size_type n, const T &val = T()) 
+    Vector(size_type n, const value_type &val = T()) 
     { create(n, val); }
 
     template <typename In>
     Vector(In i, In j) //一段迭代器去初始化容器
-    {
-        create(i, j);
-    }
+    { create(i, j); }
 
     Vector(const Vector &v)
     { create(v.begin(), v.end()); }
@@ -190,7 +188,16 @@ public:
     const_reference front() const { return *begin(); }
     const_reference back() const { return *rbegin(); }
 
-    void push_back(const T &t);
+    void push_back(const T &t)
+    {
+        if(avail_ == limit_) // full
+            grow();
+        unCheckedAppend(t);
+    }
+    void pop_back()
+    {
+        alloc_.destroy(--avail_);
+    }
 
     void swap(Vector &other)
     {
@@ -198,6 +205,14 @@ public:
         std::swap(avail_, other.avail_);
         std::swap(limit_, other.limit_);
     }
+
+    iterator insert (iterator position, const value_type& val);
+    void insert (iterator position, size_type n, const value_type& val);
+    template <typename InputIterator>
+    void insert (iterator position, InputIterator first, InputIterator last);
+
+    iterator erase (iterator position);
+    iterator erase (iterator first, iterator last);
 
 
     size_type size() const { return avail_ - data_; }
@@ -227,7 +242,7 @@ private:
 
     //为底层的数组开辟内存空间，并执行相应的初始化
     void create();
-    void create(size_type, const T &);
+    void create(size_type, const value_type &);
     template <typename In>
     void create(In, In);
 
@@ -236,7 +251,7 @@ private:
 
     //用于push_back函数
     void grow();
-    void unCheckedAppend(const T &);
+    void unCheckedAppend(const value_type &);
 };
 
 template <typename T, typename Alloc>
@@ -252,21 +267,13 @@ Vector<T, Alloc> &Vector<T, Alloc>::operator=(const Vector &rhs)
 
 
 template <typename T, typename Alloc>
-void Vector<T, Alloc>::push_back(const T &t)
-{
-    if(avail_ == limit_) // full
-        grow();
-    unCheckedAppend(t);
-}
-
-template <typename T, typename Alloc>
 void Vector<T, Alloc>::create()
 {
     data_ = avail_ = limit_ = NULL;
 }
 
 template <typename T, typename Alloc>
-void Vector<T, Alloc>::create(size_type n, const T &val)
+void Vector<T, Alloc>::create(size_type n, const value_type &val)
 {
     //分配内存
     data_ = alloc_.allocate(n);
@@ -327,14 +334,62 @@ void Vector<T, Alloc>::grow()
 }
 
 template <typename T, typename Alloc>
-void Vector<T, Alloc>::unCheckedAppend(const T &val)
+void Vector<T, Alloc>::unCheckedAppend(const value_type &val)
 {
     alloc_.construct(avail_++, val); //插入新的元素
 }
 
+/*
+template <typename T, typename Alloc>
+iterator Vector<T, Alloc>::insert(iterator position, const value_type& val)
+{
+    //调用下面的版本
+}
+
+template <typename T, typename Alloc>
+void Vector<T, Alloc>::insert(iterator position, size_type n, const value_type& val)
+{
+
+}
+
+template <typename T, typename Alloc>
+template <typename InputIterator>
+void Vector<T, Alloc>::insert (iterator position, InputIterator first, InputIterator last)
+{
+
+}
+*/
+
+template <typename T, typename Alloc>
+typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase (iterator position)
+{
+    //不能开头析构函数
+    //[position + 1, avail_)之间的元素前移
+    std::copy(position + 1, avail_, position);
+    //析构最后的元素
+    alloc_.destroy(--avail_);
+    return position; 
+}
+
+template <typename T, typename Alloc>
+typename Vector<T, Alloc>::iterator Vector<T, Alloc>::erase(iterator first, iterator last)
+{
+    difference_type left = avail_ - last;
+    //first last avail 向前迁移元素
+    std::copy(last, avail_, first);
+
+    //析构后面剩余的对象
+    iterator it(first + left);
+    while(avail_ != it)
+    {
+        alloc_.destroy(--avail_); 
+    }
+
+    //不必重置指针
+
+    return first;
+}
 
 
 
 #endif  /* VECTOR_HPP */
-
-

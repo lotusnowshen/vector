@@ -45,11 +45,12 @@ int main(int argc, char const *argv[])
     print(t);
     printInfo(t);
 
+    //测试迭代器区间构造函数
     Vector<double> t2(t.begin(), t.end());
     print(t2);
     printInfo(t2); //size = 5; capacity = 5;
 
-
+    //测试逆置const迭代器
     for(Vector<string>::const_reverse_iterator it = vec.rbegin();
         it != vec.rend();
         ++it)
@@ -61,6 +62,12 @@ int main(int argc, char const *argv[])
     cout << vec.front() << endl;
     cout << vec.back() << endl;
 
+    print(t);
+    printInfo(t);
+    t.pop_back();
+    print(t);
+    printInfo(t);
+
 
     string sarr[3] = {"hello", "world", "welcome"};
     vec.assign(sarr, sarr + 3);
@@ -68,7 +75,31 @@ int main(int argc, char const *argv[])
     printInfo(vec);
 
     Vector<string> vec2(sarr, sarr + 3);
-    assert(vec == vec2);
+    assert(vec == vec2); //测试==
+
+
+    //测试erase
+    vec.erase(vec.begin());
+    print(vec);
+    printInfo(vec);
+
+    vec.erase(vec.begin(), vec.end());
+    print(vec);
+    printInfo(vec);
+    //测试erase的返回值
+    {
+        vec.assign(sarr, sarr + 3);
+        Vector<string>::iterator it = vec.begin();
+        while(it != vec.end())
+        {
+            if(*it == "world")
+                it = vec.erase(it);
+            else
+                ++it;
+        }
+        print(vec);
+        printInfo(vec);
+    }
 
     return 0;
 }
