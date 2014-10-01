@@ -180,6 +180,10 @@ int main(int argc, char const *argv[])
         
     }
 
+    {
+        Vector<Vector<string> > vec(5, Vector<string>(4, "foo"));
+    }
+
     return 0;
 }
 
