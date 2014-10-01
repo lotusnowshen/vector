@@ -4,6 +4,7 @@
 #include <memory>
 #include <algorithm>
 #include <stddef.h>
+#include <iostream>
 
 //这里声明Vector是一个模板
 template <typename T, typename Alloc>
@@ -303,8 +304,7 @@ template <typename T, typename Alloc>
 void Vector<T, Alloc>::grow()
 {
     //确定size
-    size_type current_size = limit_ - data_; //当前大小
-    size_type new_size = (current_size*2 > 1) ?  current_size*2 : 1;
+    size_type new_size = std::max(2*(limit_ - data_), difference_type(1));
 
     growToN(new_size);
 }
@@ -342,46 +342,84 @@ typename Vector<T, Alloc>::iterator Vector<T, Alloc>::insert(iterator position, 
 template <typename T, typename Alloc>
 void Vector<T, Alloc>::insert(iterator position, size_type n, const value_type& val)
 {
-    size_type left = limit_ - avail_;
     difference_type pos = position - data_; //防止position失效
-    if(left < n)
-        grow(); //加倍
+    while(static_cast<size_type>(limit_ - avail_) < n)
+        grow();
     position = data_ + pos;
 
-    //元素后移n位
-    int len = avail_ - position; //需要移动的数量
-    int len_copy = len - n; //需要复制的数量
-    std::uninitialized_copy(position + len_copy, avail_, avail_);
-    std::copy_backward(position, position + len_copy, avail_);
+    size_type left = avail_ - position; //从pos到最后的元素数量
+    if(n < left) 
+    {
+        //元素后移n位
+        size_type len = avail_ - position; //需要移动的数量
+        size_type len_copy = len - n; //需要复制的数量
+        std::uninitialized_copy(position + len_copy, avail_, avail_);
+        std::copy_backward(position, position + len_copy, avail_);
+        //fill
+        std::fill_n(position, n, val);
+    }
+    else if(n > left)
+    {
+        //所有的元素后移
+        std::uninitialized_copy(position, avail_, position + n);
 
-    avail_ = avail_ + n;
-    
-    //fill
-    std::fill_n(position, n, val);
+        //对新元素分两次处理
+        std::fill_n(position, avail_ - position, val);
+        std::uninitialized_fill(avail_, position + n, val);
+    }
+    else
+    {
+        std::uninitialized_copy(position, avail_, avail_);
+        std::fill_n(position, n, val);
+    }
+
+    avail_ = avail_ + n; //重置指针
 }
 
 template <typename T, typename Alloc>
 template <typename InputIterator>
 void Vector<T, Alloc>::insert(iterator position, InputIterator first, InputIterator last)
 {
-    size_type left = limit_ - avail_;
     difference_type pos = position - data_; //防止position失效
-    size_type n = last - first;
-    if(left < n)
-        grow(); //加倍
+    size_type n = last - first; //需要插入的元素
+    //这里必须使用while，防止一次增加不够
+    while(static_cast<size_type>(limit_ - avail_) < n)
+        grow();
+
     position = data_ + pos;
+    //std::copy(first, last, position);
 
-    //元素后移n位
-    int len = avail_ - position; //需要移动的数量
-    int len_copy = len - n; //需要复制的数量
-    //需要初始化的数量为n
-    std::uninitialized_copy(position + len_copy, avail_, avail_);
-    std::copy_backward(position, position + len_copy, avail_);
+    size_type left = avail_ - position; //从pos到最后的元素数量
+    if(n < left) 
+    {
+        //元素后移n位
+        size_type len = avail_ - position; //需要移动的数量
+        size_type len_copy = len - n; //需要复制的数量
+        std::uninitialized_copy(position + len_copy, avail_, avail_);
+        std::copy_backward(position, position + len_copy, avail_);
+        //copy
+        std::copy(first, last, position);
+    }
+    else if(n > left)
+    {
+        //所有的元素后移
+        std::uninitialized_copy(position, avail_, position + n);
 
-    avail_ = avail_ + n;
+        //对新元素分两次处理
+        //std::fill_n(position, avail_ - position, val);
+        //std::uninitialized_fill(avail_, position + n, val);
 
-    //copy
-    std::copy(first, last, position);
+        std::copy(first, first + left, position);
+        std::uninitialized_copy(first + left, last, avail_);
+    }
+    else
+    {
+        std::uninitialized_copy(position, avail_, avail_);
+        //std::fill_n(position, avail_ - position, val);
+        std::copy(first, last, position);
+    }
+
+    avail_ = avail_ + n; //重置指针
 }
 
 template <typename T, typename Alloc>
@@ -430,7 +468,7 @@ void Vector<T, Alloc>::resize (size_type n, value_type val)
         //调用insert来完成内存调整
         size_type diff = n - current_size;
         size_type left = static_cast<size_type>(limit_ - avail_); //剩余
-        if(left < diff) //需要重新分配内存
+        if(left < diff) //需要重新分配内存 不需要while
         {
             growToN(n);
         }
@@ -447,14 +485,7 @@ void Vector<T, Alloc>::reserve (size_type n)
     size_type current_capacity = capacity();
     if(n > current_capacity)
     {
-        iterator new_data = alloc_.allocate(n);
-        iterator new_avail = std::uninitialized_copy(data_, avail_, new_data);
-
-        uncreate(); //释放old
-
-        data_ = new_data;
-        avail_ = new_avail;
-        limit_ = data_ + n;
+        growToN(n);
     }
 }
 

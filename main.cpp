@@ -155,7 +155,7 @@ int main(int argc, char const *argv[])
     }
 
     {
-        Vector<string> vec(3, "foo");
+        Vector<string> vec(1, "foo");
         print(vec);
         printInfo(vec);
 
@@ -163,14 +163,21 @@ int main(int argc, char const *argv[])
         print(vec);
         printInfo(vec);
 
-        vec.insert(vec.begin(), 4, "bar");
+        vec.insert(vec.begin(), 12, "bar");
         print(vec);
         printInfo(vec);
 
-        string sarr[3] = {"hello", "world", "welcome"};
-        vec.insert(vec.begin()+2, sarr, sarr + 3);
+        //测试内存需要多次翻倍
+        vec.insert(vec.begin(), 10, "test"); 
         print(vec);
         printInfo(vec);
+
+        string sarr[300] = {"hello", "world", "welcome"};
+        vec.insert(vec.end(), sarr, sarr + 100);
+        print(vec);
+        printInfo(vec);
+
+        
     }
 
     return 0;
