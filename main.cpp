@@ -182,6 +182,7 @@ int main(int argc, char const *argv[])
 
     {
         Vector<Vector<string> > vec(5, Vector<string>(4, "foo"));
+        cout << vec.max_size() << endl;
     }
 
     return 0;

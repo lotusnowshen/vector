@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <algorithm>
+#include <limits>
 #include <stddef.h>
 
 //这里声明Vector是一个模板
@@ -201,6 +202,8 @@ public:
     bool empty() const { return data_ == avail_; }
     size_type size() const { return avail_ - data_; }
     size_type capacity() const { return limit_ - data_; }
+    size_type max_size() const 
+    { return std::numeric_limits<size_type>::max() / sizeof(T); }
 
     iterator begin() { return data_; }
     iterator end() { return avail_; }
