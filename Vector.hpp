@@ -4,7 +4,6 @@
 #include <memory>
 #include <algorithm>
 #include <stddef.h>
-#include <iostream>
 
 //这里声明Vector是一个模板
 template <typename T, typename Alloc>
