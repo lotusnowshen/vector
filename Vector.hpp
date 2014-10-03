@@ -54,7 +54,7 @@ private:
     class reverse_iterator
     {
     public:
-        reverse_iterator(iterator it = NULL) :current_(it) { }
+        explicit reverse_iterator(iterator it = NULL) :current_(it) { }
         iterator base() const { return current_; }
         reverse_iterator &operator++()
         {   --current_; return *this; }
@@ -97,7 +97,7 @@ private:
     class const_reverse_iterator
     {
     public:
-        const_reverse_iterator(const_iterator it = NULL) :current_(it) { }
+        explicit const_reverse_iterator(const_iterator it = NULL) :current_(it) { }
         //提供从reverse_iterator 到 const_reverse_iterator的转换
         const_reverse_iterator(reverse_iterator it) :current_(it.base()) { }
         const_iterator base() const { return current_; }
